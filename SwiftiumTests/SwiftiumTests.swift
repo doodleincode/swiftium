@@ -7,7 +7,19 @@
 //
 
 import XCTest
-@testable import Swiftium
+import Swiftium
+
+extension String {
+    func toData() -> NSData? {
+        return self.data(using: String.Encoding.utf8, allowLossyConversion: false) as NSData?
+    }
+}
+
+extension NSData {
+    func toString() -> String? {
+        return (NSString(data: self as Data, encoding: String.Encoding.utf8.rawValue) as! String)
+    }
+}
 
 class SwiftiumTests: XCTestCase {
     
@@ -21,9 +33,59 @@ class SwiftiumTests: XCTestCase {
         super.tearDown()
     }
     
-    func testExample() {
-        // This is an example of a functional test case.
-        // Use XCTAssert and related functions to verify your tests produce the correct results.
+    func testSecretBox() {
+        XCTAssert(Swiftium.setup() == true)
+        
+        // Some test data
+        let msg = "Hello World!".toData()!
+        let key1 = Swiftium.utils.randomBytes(len: SecretBox.keySize)!
+        let key2 = Swiftium.utils.randomBytes(len: SecretBox.keySize)!
+        
+        let box = SecretBox()
+        
+        // Test simple combined nonce + mac + cipher text
+        let encrypted1: NSData = box.encrypt(message: msg, secretKey: key1)!
+        let decrypted1: NSData = box.decrypt(nonceAndAuthenticatedCipherText: encrypted1, secretKey: key1)!
+        
+        XCTAssert(decrypted1 == msg)
+        
+        // Test that encrypting the same plain text with same key should not
+        // result in the same cipher text
+        XCTAssertNotEqual(encrypted1, box.encrypt(message: msg, secretKey: key1)!)
+        
+        // Test invalid key on decryption
+        XCTAssertNil(box.decrypt(nonceAndAuthenticatedCipherText: encrypted1, secretKey: key2))
+    }
+    
+    func testUtils() {
+        XCTAssert(Swiftium.setup() == true)
+        
+        // Some test data
+        let d1 = NSData(bytes: [1, 2, 3, 4] as [UInt8], length: 4)
+        let d2 = NSData(bytes: [1, 2, 3, 4] as [UInt8], length: 4)
+        let d3 = NSData(bytes: [0, 1, 2, 3] as [UInt8], length: 4)
+        let d4 = NSData(bytes: [0, 1, 2] as [UInt8], length: 3)
+        let md1 = NSMutableData(bytes: [1, 2, 3, 4] as [UInt8], length: 4)
+        
+        // Testing comparison
+        XCTAssert(Swiftium.utils.compare(d1, d2)! == 0)
+        XCTAssert(Swiftium.utils.compare(d1, d3)! == 1)
+        XCTAssert(Swiftium.utils.compare(d3, d1)! == -1)
+        XCTAssert(Swiftium.utils.compare(d1, d4) == nil)
+        
+        // Testing equality
+        XCTAssert(Swiftium.utils.equals(d1, d2) == true)
+        XCTAssert(Swiftium.utils.equals(d1, d3) == false)
+        XCTAssert(Swiftium.utils.equals(d1, d4) == false)
+        
+        // Zero the data
+        Swiftium.memory.zero(data: md1)
+        
+        // Test that data was indeed zeroed
+        XCTAssert(Swiftium.memory.isZero(data: md1) == true)
+        
+        // Test data that is not zero
+        XCTAssert(Swiftium.memory.isZero(data: d1) == false)
     }
     
     func testPerformanceExample() {

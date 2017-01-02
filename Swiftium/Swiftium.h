@@ -7,6 +7,7 @@
 //
 
 #import <Cocoa/Cocoa.h>
+#import "sodium.h"
 
 //! Project version number for Swiftium.
 FOUNDATION_EXPORT double SwiftiumVersionNumber;
