@@ -21,6 +21,23 @@ public final class Swiftium {
     
 }
 
+enum SwiftiumError: Error {
+    
+    // Thrown when an expected length is not valid
+    // Examples: key size, nonce size, cipher text less than excepted length
+    case invalidSize(reason: String)
+    
+    // Thrown when any memory allocation fails
+    case allocationFailed(source: String)
+    
+    // Thrown when any "encrypt" function from Sodium's library fails
+    case encryptFailed(reason: String)
+    
+    // Thrown when any "decrypt" function from Sodium's library fails
+    case decryptFailed(reason: String)
+    
+}
+
 public typealias Key = NSData
 public typealias Nonce = NSData
 public typealias Mac = NSData

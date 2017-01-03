@@ -41,20 +41,24 @@ class SwiftiumTests: XCTestCase {
         let key1 = Swiftium.utils.randomBytes(len: SecretBox.keySize)!
         let key2 = Swiftium.utils.randomBytes(len: SecretBox.keySize)!
         
-        let box = SecretBox()
+        let secretBox = SecretBox()
         
-        // Test simple combined nonce + mac + cipher text
-        let encrypted1: NSData = box.encrypt(message: msg, secretKey: key1)!
-        let decrypted1: NSData = box.decrypt(nonceAndAuthenticatedCipherText: encrypted1, secretKey: key1)!
-        
+        // Test the easiest way to encrypt with auto generated key
+        let (nonceMacCipherText, secretKey): (NSData, Key) = try! secretBox.encrypt(message: msg)
+        let decrypted1: NSData = try! secretBox.decrypt(nonceMacCipherText: nonceMacCipherText, secretKey: secretKey)
         XCTAssert(decrypted1 == msg)
+        
+        // Test simple combined nonce + mac + cipher text with a provided key
+        let encrypted2: NSData = try! secretBox.encrypt(message: msg, secretKey: key1)
+        let decrypted2: NSData = try! secretBox.decrypt(nonceMacCipherText: encrypted2, secretKey: key1)
+        XCTAssert(decrypted2 == msg)
         
         // Test that encrypting the same plain text with same key should not
         // result in the same cipher text
-        XCTAssertNotEqual(encrypted1, box.encrypt(message: msg, secretKey: key1)!)
+        XCTAssertNotEqual(encrypted2, try? secretBox.encrypt(message: msg, secretKey: key1))
         
         // Test invalid key on decryption
-        XCTAssertNil(box.decrypt(nonceAndAuthenticatedCipherText: encrypted1, secretKey: key2))
+        XCTAssertNil(try? secretBox.decrypt(nonceMacCipherText: encrypted2, secretKey: key2))
     }
     
     func testUtils() {
