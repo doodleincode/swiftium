@@ -31,10 +31,11 @@ public class SecretBox {
     public func encrypt(message: NSData) throws -> (nonceMacCipherText: NSData, secretKey: Key) {
         // Generate a random key
         guard let secretKey = Swiftium.utils.randomBytes(len: SecretBox.keySize) else {
-            throw SwiftiumError.allocationFailed(source: "Random bytes generation failed")
+            throw SwiftiumError.allocationFailed(reason: "Random bytes generation failed")
         }
         
         // Try and encrypt
+        // We are not catching exceptions because we want them to bubble up to the caller
         let nonceMacCipherText: NSData = try encrypt(message: message, secretKey: secretKey)
         
         return (nonceMacCipherText: nonceMacCipherText, secretKey: secretKey)
@@ -59,8 +60,9 @@ public class SecretBox {
         let (macCipherText, nonce): (NSData, Nonce)
                     = try encrypt(message: message, secretKey: secretKey)
         
-        // Concat the mac+cipher with the nonce value
-        let nonceMacCipherText = NSMutableData(data: nonce as Data)
+        // Concat the nonce and mac+cipher values
+        let nonceMacCipherText = NSMutableData()
+        nonceMacCipherText.append(nonce as Data)
         nonceMacCipherText.append(macCipherText as Data)
         
         return nonceMacCipherText
@@ -87,13 +89,13 @@ public class SecretBox {
         
         // Allocate enough bytes to hold the encrypted text and mac
         guard let macCipherText = NSMutableData(length: message.length + SecretBox.macSize) else {
-            throw SwiftiumError.allocationFailed(source: "Unable to allocate NSMutableData for macCipherText")
+            throw SwiftiumError.allocationFailed(reason: "Unable to allocate NSMutableData for macCipherText")
         }
         
         // Generate random bytes for the nonce
         // Nonce is basically the IV and should be different everytime
         guard let nonce = Swiftium.utils.randomBytes(len: SecretBox.nonceSize) else {
-            throw SwiftiumError.allocationFailed(source: "Random bytes generation failed")
+            throw SwiftiumError.allocationFailed(reason: "Random bytes generation failed")
         }
         
         // Run everything through sodiums crypto_secretbox_easy() function
@@ -128,17 +130,17 @@ public class SecretBox {
         
         // Allocate memory for the cipher text
         guard let cipherText = NSMutableData(length: message.length) else {
-            throw SwiftiumError.allocationFailed(source: "Unable to allocate NSMutableData for cipherText")
+            throw SwiftiumError.allocationFailed(reason: "Unable to allocate NSMutableData for cipherText")
         }
         
         // Allocate memory for the mac
         guard let mac = NSMutableData(length: SecretBox.macSize) else {
-            throw SwiftiumError.allocationFailed(source: "Unable to allocate NSMutableData for mac")
+            throw SwiftiumError.allocationFailed(reason: "Unable to allocate NSMutableData for mac")
         }
         
         // Generate random bytes for the nonce
         guard let nonce = Swiftium.utils.randomBytes(len: SecretBox.nonceSize) else {
-            throw SwiftiumError.allocationFailed(source: "Random bytes generation failed")
+            throw SwiftiumError.allocationFailed(reason: "Random bytes generation failed")
         }
         
         // Using the "detached" function this time so that we can get the values for each
@@ -210,7 +212,7 @@ public class SecretBox {
         
         // Allocate buffer for the decoded message
         guard let message = NSMutableData(length: macCipherText.length - SecretBox.macSize) else {
-            throw SwiftiumError.allocationFailed(source: "Unable to allocate NSMutableData for message")
+            throw SwiftiumError.allocationFailed(reason: "Unable to allocate NSMutableData for message")
         }
         
         // Try and decrypt
@@ -247,7 +249,7 @@ public class SecretBox {
         
         // Allocate memory for the decoded message
         guard let message = NSMutableData(length: cipherText.length) else {
-            throw SwiftiumError.allocationFailed(source: "Unable to allocate NSMutableData for message")
+            throw SwiftiumError.allocationFailed(reason: "Unable to allocate NSMutableData for message")
         }
         
         // Try and decrypt

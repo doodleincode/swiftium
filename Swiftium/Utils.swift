@@ -48,8 +48,7 @@ public class Utils {
             return false
         }
         
-        let res = sodium_memcmp(b1.bytesPtr(), b2.bytesPtr(), b1.length)
-        return res == 0
+        return sodium_memcmp(b1.bytesPtr(), b2.bytesPtr(), b1.length) == 0
     }
     
     //

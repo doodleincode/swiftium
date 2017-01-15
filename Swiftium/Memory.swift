@@ -28,8 +28,7 @@ public class Memory {
     // - Returns: True if the data contains all zeros, false otherwise
     //
     public func isZero(data: NSData) -> Bool {
-        let res = sodium_is_zero(data.bytesPtr(), data.length)
-        return res == 1
+        return sodium_is_zero(data.bytesPtr(), data.length) == 1
     }
     
 }

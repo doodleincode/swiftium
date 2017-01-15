@@ -44,8 +44,8 @@ class SwiftiumTests: XCTestCase {
         let secretBox = SecretBox()
         
         // Test the easiest way to encrypt with auto generated key
-        let (nonceMacCipherText, secretKey): (NSData, Key) = try! secretBox.encrypt(message: msg)
-        let decrypted1: NSData = try! secretBox.decrypt(nonceMacCipherText: nonceMacCipherText, secretKey: secretKey)
+        let (encrypted1, secretKey): (NSData, Key) = try! secretBox.encrypt(message: msg)
+        let decrypted1: NSData = try! secretBox.decrypt(nonceMacCipherText: encrypted1, secretKey: secretKey)
         XCTAssert(decrypted1 == msg)
         
         // Test simple combined nonce + mac + cipher text with a provided key

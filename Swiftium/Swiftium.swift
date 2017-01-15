@@ -28,7 +28,7 @@ enum SwiftiumError: Error {
     case invalidSize(reason: String)
     
     // Thrown when any memory allocation fails
-    case allocationFailed(source: String)
+    case allocationFailed(reason: String)
     
     // Thrown when any "encrypt" function from Sodium's library fails
     case encryptFailed(reason: String)
